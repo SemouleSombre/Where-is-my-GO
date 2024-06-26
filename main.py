@@ -1,7 +1,7 @@
 import os
-import win32api
 import copy
-
+import json
+import win32api
 
 WALKS = {
     'Name':"",
@@ -14,6 +14,7 @@ WALKS = {
 def GetDrives() -> list:
     drives = win32api.GetLogicalDriveStrings()
     drives = drives.split('\000')[:-1]
+    return drives
 
 def defineSize(list_of_elements):
     size = 0
@@ -47,18 +48,14 @@ def walking(path, step=0):
         else:
             isFile = os.path.isfile(f"{path}/{element}")
             if isFile:
-                # print(f"{element} is a file")
                 metadata[index]['Name'] = element
                 metadata[index]['Path'] = f"{path}/{element}"
                 metadata[index]['Size'] = os.path.getsize(f"{path}/{element}")
                 metadata[index]['Step'] = step+1
             else:
-                # print(walking(f"{path}/{element}", step+1))
                 metadata[index] = walking(f"{path}/{element}", step+1)
     head['Content'] = metadata
-    # print(head)
     head['Size'] = defineSize(metadata)
-    # print(head)
     return head
 
 def Main():
@@ -67,10 +64,9 @@ def Main():
         PC = []
         for drive in drives:
             PC.append(walking(drive))
-        
-        f = open('data.json', 'wb')
-        f.write(PC)
-        f.close()
+        PC = {'This PC' : PC}
+        with open('PC.json', 'w') as f:
+            json.dump(PC, f, indent=4)
 
 
 
